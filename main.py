@@ -1,16 +1,77 @@
-# This is a sample Python script.
+import sys
+import traceback
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import  QMainWindow,QApplication
+from window import Ui_MainWindow
+from TCP_receiver import TCP_receiver
+from Thread_1 import Thread_1
+import configparser
+class ImageDialog(QMainWindow):
+    signal_server = pyqtSignal(TCP_receiver)
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+
+    def __init__(self):
+        super().__init__()
+        self.ui =Ui_MainWindow()
+        self.settings = QSettings('GrabberBob', 'GrabberBob')
+        self.ui.setupUi(self)
+        self.ui.pushButton.clicked.connect(self.launch_thread1)
+        try:
+            self.set_old_values()
+        except:
+            print(traceback.format_exc())
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+
+    def launch_thread1(self):
+        try:
+            if self.mythread_1.isRunning():
+                self.mythread_1.terminate()
+                self.mythread_1 = Thread_1(mainwindow=self)
+                self.mythread_1.signal_status.connect(self.change_status_tcp)
+                self.mythread_1.start()
+            else:
+                self.mythread_1 = Thread_1(mainwindow=self)
+                self.mythread_1.signal_status.connect(self.change_status_tcp)
+                self.mythread_1.start()
+        except:
+            self.mythread_1 = Thread_1(mainwindow=self)
+            self.mythread_1.signal_status.connect(self.change_status_tcp)
+            self.mythread_1.start()
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+
+
+
+    def closeEvent(self, event):
+        self.settings.setValue('host1', self.ui.lineEdit_2.text())
+        self.settings.setValue('port1', self.ui.lineEdit.text())
+
+
+
+
+
+
+
+
+    def set_old_values(self):
+        try:
+            self.ui.lineEdit.setText(self.settings.value('port1'))
+            self.ui.lineEdit_2.setText(self.settings.value('host1'))
+        except:
+            print(traceback.format_exc())
+
+
+    def change_status_tcp(self,item:bool):
+        if item:
+            self.ui.label_3.setStyleSheet('color: rgb(0, 100, 0); font: bold 14px;')
+        else:
+            self.ui.label_3.setStyleSheet('color: rgb(255, 0, 0); font: bold 14px;')
+
+app = QApplication(sys.argv)
+window = ImageDialog()
+window.show()
+
+sys.exit(app.exec())
