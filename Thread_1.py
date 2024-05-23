@@ -1,3 +1,5 @@
+import datetime
+
 from PyQt5.QtCore import *
 from TCP_receiver import *
 import traceback
@@ -35,9 +37,10 @@ class Thread_1(QThread):
 
         while True:
             try:
+                now = datetime.datetime.now()
                 data = receiver.receive_data()
-                receiver.write_logs(str(data),'byte_logs')
-                receiver.write_logs(data.decode('ascii','replace'), 'byte_ascii')
+                receiver.write_logs(str(now) + ' --- ' + str(data),'byte_logs')
+                receiver.write_logs(str(now) + ' --- ' + data.decode('ascii','replace'), 'byte_ascii')
                 self.signal_status.emit(True)
             except:
                 self.signal_status.emit(False)
